@@ -12,51 +12,63 @@ using Newtonsoft.Json;
 
 namespace MyYouTubeLibrary
 {
-
+    //Exceptin Class
     public class YouTubeDataServiceException:Exception
     {
-
+        public YouTubeDataServiceException(String msg)
+        {
+            if (string.Equals(msg, "notValid", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine("The argument is not valid. possible argument: VideoList");
+            }
+        }
     }
+
+    //Data received from YouTube Web Service, parsed into data object
     public class YouTubeData
     {
-        List<string> video;
-
         public YouTubeData()
         {
             
         }
     }
+
+
     public interface IyouTubeDataService
     {
          YouTubeData getYouTubeData(String DataType , String APIkey);
     }
     
    
-    class RetriveMyUploads : IyouTubeDataService
+    class VideoList : IyouTubeDataService
     {
         public YouTubeData data;
         public String URL;
         public String urlParameters;
+
         //create an object of SingleObject
-        private static RetriveMyUploads instance = new RetriveMyUploads();
+        private static VideoList instance = new VideoList();
 
         //make the constructor private so that this class cannot be instantiated
-        private RetriveMyUploads() 
+        private VideoList() 
         {
             this.URL = "https://www.googleapis.com/youtube/v3/search";
         }
 
         //Get the only object availablea
-        public static RetriveMyUploads getInstance()
+        public static VideoList getInstance()
         {
             return instance;
         }
 
         YouTubeData IyouTubeDataService.getYouTubeData(String DataType, String APIkey)
         {
-
-
-            this.urlParameters = "?part=snippet&relatedToVideoId=ONqBDz_3wBQ&type=video&key=" + APIkey;
+            if (!string.Equals(DataType, "VideoList", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new YouTubeDataServiceException("notValid");
+            }
+            
+            this.urlParameters = "?part=snippet&relatedToVideoId=06_ng5caZ78&type=video&key=" + APIkey;
             HttpClient client = new HttpClient();
             client.BaseAddress = new Uri(URL);
 
@@ -75,6 +87,7 @@ namespace MyYouTubeLibrary
                 {
                     data = response.Content.ReadAsAsync<YouTubeData>().Result;
                     Console.WriteLine(data.ToString());
+                    
                 }
                 catch (Exception e)
                 {
@@ -98,14 +111,21 @@ namespace MyYouTubeLibrary
             {
                 return null;
             }
-            if (string.Equals(DataType, "MyUploads", StringComparison.OrdinalIgnoreCase))
-            {
-                RetriveMyUploads obj = RetriveMyUploads.getInstance();
-                return obj;
 
+            if (string.Equals(DataType, "VideoList", StringComparison.OrdinalIgnoreCase))
+            {
+                VideoList obj = VideoList.getInstance();
+                return obj;
             }
 
-            return null;
+            if (!string.Equals(DataType, "VideoList", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new YouTubeDataServiceException("notValid");
+            }
+
+            return null;   
+            
+            
         }
     }
 
@@ -115,8 +135,8 @@ namespace MyYouTubeLibrary
         static void Main(string[] args)
         {
              YouTubeDataServiceFactory factory = new YouTubeDataServiceFactory();
-             IyouTubeDataService func1 = factory.YouTubeService("MyUploads", "AIzaSyAs5EBJ96dISdxrgU1y5v93lYqIx-9Zbs0");
-             func1.getYouTubeData("MyUploads", "AIzaSyBGKoPpk2OE3Z_-cfCwF035g7ljgZe25wo");
+             IyouTubeDataService func1 = factory.YouTubeService("VideoList", "AIzaSyAs5EBJ96dISdxrgU1y5v93lYqIx-9Zbs0");
+             func1.getYouTubeData("VideoList", "AIzaSyBGKoPpk2OE3Z_-cfCwF035g7ljgZe25wo");
              Console.ReadLine();
         }
     }
