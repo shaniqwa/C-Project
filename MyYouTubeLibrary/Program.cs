@@ -12,15 +12,20 @@ using Newtonsoft.Json;
 
 namespace MyYouTubeLibrary
 {
-    public class DataObject
-    {
-        public string Name { get; set; }
-    }
+
     public class YouTubeDataServiceException:Exception
     {
 
     }
+    public class YouTubeData
+    {
+        List<string> video;
 
+        public YouTubeData()
+        {
+            
+        }
+    }
     public interface IyouTubeDataService
     {
          YouTubeData getYouTubeData(String DataType , String APIkey);
