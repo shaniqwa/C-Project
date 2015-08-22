@@ -20,17 +20,7 @@ namespace MyYouTubeLibrary
     {
 
     }
-    public class YouTubeData
-    {
-        List<string> video;
 
-        public YouTubeData()
-        {
-            
-        }
-
-
-    }
     public interface IyouTubeDataService
     {
          YouTubeData getYouTubeData(String DataType , String APIkey);
