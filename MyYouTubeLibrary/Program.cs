@@ -6,8 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using Newtonsoft.Json;
-
+using Newtonsoft.Json.Linq;
 
 
 namespace MyYouTubeLibrary
@@ -24,19 +23,59 @@ namespace MyYouTubeLibrary
         }
     }
 
+
+    public class Item
+    {
+        string videoId { get; set; }
+        string title { get; set; }
+        string description { get; set; }
+
+        public Item(string videoId) 
+        {
+            this.videoId = videoId;
+        }
+        public Item(string videoId, string title, string des)
+        {
+            this.videoId = videoId;
+            this.title = title;
+            this.description = des;
+        }
+        public override string ToString()
+        {
+            return "Title: " + title + "\nVideo ID: " + videoId + "\nDescription: " + description;
+        }
+        
+    }
     //Data received from YouTube Web Service, parsed into data object
     public class YouTubeData
     {
-        public YouTubeData()
+        private List<Item> items;
+        public YouTubeData() 
         {
-            
+            items = new List<Item>();
         }
+        public void addItem(Item newItem)
+        {
+            items.Add(newItem);
+        }
+        public List<Item> Items
+        {
+           get
+           {
+               return items;
+           }
+           set
+           {
+               items = value;
+           }
+        }
+            
     }
 
 
     public interface IyouTubeDataService
     {
-         YouTubeData getYouTubeData(String DataType , String APIkey);
+         YouTubeData getYouTubeData(String DataType ,String videoID, String APIkey);
     }
     
    
@@ -53,6 +92,7 @@ namespace MyYouTubeLibrary
         private VideoList() 
         {
             this.URL = "https://www.googleapis.com/youtube/v3/search";
+            this.data = new YouTubeData();
         }
 
         //Get the only object availablea
@@ -61,43 +101,39 @@ namespace MyYouTubeLibrary
             return instance;
         }
 
-        YouTubeData IyouTubeDataService.getYouTubeData(String DataType, String APIkey)
+        YouTubeData IyouTubeDataService.getYouTubeData(String DataType, String videoID ,String APIkey)
         {
             if (!string.Equals(DataType, "VideoList", StringComparison.OrdinalIgnoreCase))
             {
                 throw new YouTubeDataServiceException("notValid");
             }
             
-            this.urlParameters = "?part=snippet&relatedToVideoId=06_ng5caZ78&type=video&key=" + APIkey;
-            HttpClient client = new HttpClient();
-            client.BaseAddress = new Uri(URL);
+            //Set url query string + the APIkey of the user as parameter
+            this.urlParameters = "?part=snippet&relatedToVideoId=" + videoID + "&type=video&key=" + APIkey;
+            
+            //Get json from youtube api
+            var api = string.Format(URL + urlParameters);
 
-            // Add an Accept header for JSON format.
-            client.DefaultRequestHeaders.Accept.Add(
-            new MediaTypeWithQualityHeaderValue("application/json"));
-
-            // List data response.
-            HttpResponseMessage response = client.GetAsync(urlParameters).Result;  // Blocking call!
-            if (response.IsSuccessStatusCode)
+            using (WebClient wc = new WebClient())
             {
-                Console.WriteLine(response);
-                
-                // Parse the response body. Blocking!
-                try
+                var json = wc.DownloadString(api);
+               
+                //parse json
+                JObject o = JObject.Parse(json);
+
+                JArray items = (JArray)o["items"];
+                int length = items.Count;
+
+                for (int i = 0; i < items.Count; i++)
                 {
-                    data = response.Content.ReadAsAsync<YouTubeData>().Result;
-                    Console.WriteLine(data.ToString());
-                    
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
+                    var item = (JObject)items[i];
+                    string title = (string)item["snippet"]["title"];
+                    string id = (string)item["id"]["videoId"];
+                    string des = (string)item["snippet"]["description"];
+                    Item tmp = new Item(id, title,des);
+                    data.addItem(tmp);
                 }
             }
-            else
-            {
-                Console.WriteLine("{0} ({1})", (int)response.StatusCode, response.ReasonPhrase);
-            }  
             return data;
         }
     }
@@ -105,7 +141,7 @@ namespace MyYouTubeLibrary
     public class YouTubeDataServiceFactory
     {
         //use getYouTubeData method to get object that implements IyouTubeDataService interface
-        public IyouTubeDataService YouTubeService(String DataType, String APIkey)
+        public IyouTubeDataService YouTubeService(String DataType,String videoID ,String APIkey)
         {
             if (DataType == null)
             {
@@ -134,10 +170,7 @@ namespace MyYouTubeLibrary
     {
         static void Main(string[] args)
         {
-             YouTubeDataServiceFactory factory = new YouTubeDataServiceFactory();
-             IyouTubeDataService func1 = factory.YouTubeService("VideoList", "AIzaSyAs5EBJ96dISdxrgU1y5v93lYqIx-9Zbs0");
-             func1.getYouTubeData("VideoList", "AIzaSyBGKoPpk2OE3Z_-cfCwF035g7ljgZe25wo");
-             Console.ReadLine();
+    
         }
     }
 }
