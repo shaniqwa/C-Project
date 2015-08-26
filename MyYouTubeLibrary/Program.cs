@@ -44,7 +44,6 @@ namespace MyYouTubeLibrary
         {
             return "Title: " + title + "\nVideo ID: " + videoId + "\nDescription: " + description;
         }
-        
     }
     //Data received from YouTube Web Service, parsed into data object
     public class YouTubeData
@@ -69,7 +68,6 @@ namespace MyYouTubeLibrary
                items = value;
            }
         }
-            
     }
 
 
@@ -78,7 +76,6 @@ namespace MyYouTubeLibrary
          YouTubeData getYouTubeData(String DataType ,String videoID, String APIkey);
     }
     
-   
     class VideoList : IyouTubeDataService
     {
         public YouTubeData data;
@@ -140,28 +137,19 @@ namespace MyYouTubeLibrary
 
     public class YouTubeDataServiceFactory
     {
+        public const string argumetNotVaildMsg = "The argument is not valid. possible argument: VideoList";
         //use getYouTubeData method to get object that implements IyouTubeDataService interface
         public IyouTubeDataService YouTubeService(String DataType,String videoID ,String APIkey)
         {
-            if (DataType == null)
-            {
-                return null;
-            }
-
             if (string.Equals(DataType, "VideoList", StringComparison.OrdinalIgnoreCase))
             {
                 VideoList obj = VideoList.getInstance();
                 return obj;
             }
-
-            if (!string.Equals(DataType, "VideoList", StringComparison.OrdinalIgnoreCase))
+            else
             {
                 throw new YouTubeDataServiceException("notValid");
             }
-
-            return null;   
-            
-            
         }
     }
 
