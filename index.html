@@ -47,8 +47,9 @@ At the top of your page include : using MyYouTubeLibrary;  </p>
 <h2>
 <a id="creating-objects" class="anchor" href="#creating-objects" aria-hidden="true"><span class="octicon octicon-link"></span></a>Creating objects</h2>
 
-<p>You will need to use few classes:
-IyouTubeDataService YouTubeService(String DataType,String videoID ,String APIkey)</p>
+<p>Create factory object as following:</p>
+
+<p>IyouTubeDataService YouTubeService(String DataType,String videoID ,String APIkey)</p>
 
 <ul>
 <li>DataType - the only valid argument at the moment is "VideoList", that creates a proper video list search method. In the future it is possible that we add more services to this library. </li>
